@@ -1,0 +1,46 @@
+syntax = "proto3";
+
+package temperature;
+
+// Leitura bruta de um sensor
+message SensorReading {
+  string sensor_id  = 1;
+  double temperature = 2;
+  int64  timestamp   = 3;
+}
+
+// Média de temperatura calculada em uma janela de tempo
+message TemperatureAverage {
+  string sensor_id    = 1;
+  double average      = 2;
+  int64  window_start = 3;
+  int64  window_end   = 4;
+  int32  sample_count = 5;
+}
+
+// Requisição de consulta por sensor
+message QueryRequest {
+  string sensor_id = 1;  // vazio = qualquer sensor
+}
+
+// Requisição de histórico com filtro de intervalo de tempo
+message HistoryRequest {
+  string sensor_id     = 1;
+  int64  from_timestamp = 2;
+  int64  to_timestamp   = 3;
+}
+
+// Serviço gRPC de consulta de temperatura
+service TemperatureService {
+  // Última leitura bruta registrada
+  rpc GetLatestReading(QueryRequest) returns (SensorReading);
+
+  // Última média calculada (janela de 2 horas)
+  rpc GetLatestAverage(QueryRequest) returns (TemperatureAverage);
+
+  // Histórico de leituras brutas (server-side streaming)
+  rpc GetReadingHistory(HistoryRequest) returns (stream SensorReading);
+
+  // Histórico de médias calculadas (server-side streaming)
+  rpc GetAverageHistory(HistoryRequest) returns (stream TemperatureAverage);
+}
